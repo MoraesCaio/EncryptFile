@@ -30,28 +30,15 @@ namespace EncryptFile
         {
             encInputTBox.Text = encOFD.FileName;
         }
-
-        private void encSFD_FileOk(object sender, CancelEventArgs e)
-        {
-            //encOutputTBox.Text = encSFD.FileName;
-        }
         //DEC
         private void decOFD_FileOk(object sender, CancelEventArgs e)
         {
             decInputTBox.Text = decOFD.FileName;
         }
-        private void decSFD_FileOk(object sender, CancelEventArgs e)
-        {
-            //decOutputTBox.Text = decSFD.FileName;
-        }
         //BROWSE OUTPUT FILES
         private void encOutBrowse_Click(object sender, EventArgs e)
         {
             encSFD.ShowDialog();
-        }
-        private void decOutBrowse_Click(object sender, EventArgs e)
-        {
-            decSFD.ShowDialog();
         }
         private bool CheckInputsUI(TextBox t)
         {
@@ -67,99 +54,123 @@ namespace EncryptFile
             }
             return true;
         }
-        private void CheckOutputsUI(TextBox tIn, /*TextBox tOut,*/ SaveFileDialog s)
-        {
-            /*if (string.IsNullOrWhiteSpace(tOut.Text))
-            {*/
-                s.FileName = Path.GetFileNameWithoutExtension(tIn.Text);
-                s.ShowDialog();
-            //}
-        }
 
-        private bool promptUserUI(TextBox textInput, /*TextBox textOutput,*/ SaveFileDialog s)
+        private void CheckOutputsUI(TextBox tIn, SaveFileDialog s, FolderBrowserDialog f, bool encrypt)
         {
-            if (!CheckInputsUI(textInput))
+            if (encrypt)
             {
-                return false;
-            }
-            CheckOutputsUI(textInput, /*textOutput,*/ s);
-            return true;
-        }
-        private bool setOutputFile(TextBox tIn, /*TextBox tOut,*/ SaveFileDialog s, out string outFile)
-        {
-            /*if (!string.IsNullOrWhiteSpace(tOut.Text))
-            {
-                outFile = tOut.Text;
-            }
-            else */if (!string.IsNullOrWhiteSpace(s.FileName))
-            {
-                outFile = s.FileName;
+                s.FileName = Path.GetFileNameWithoutExtension(tIn.Text);
+                DialogResult result = s.ShowDialog();
+
+                if (result == DialogResult.OK)
+                {
+                    if (string.IsNullOrWhiteSpace(s.FileName))
+                    {
+                        try
+                        {
+                            s.FileName = Path.Combine(
+                                             Path.GetDirectoryName(tIn.Text),
+                                             Path.GetFileNameWithoutExtension(tIn.Text)
+                                         );
+                        }
+                        catch (Exception ex)
+                        {
+                            s.FileName = "";
+                        }
+                    }
+                }
+                else
+                {
+                    s.FileName = "";
+                    return;
+                }
             }
             else
             {
-                try
+                f.SelectedPath = Application.StartupPath;
+                if(DialogResult.OK != f.ShowDialog())
                 {
-                    outFile = Path.Combine(
-                                  Path.GetDirectoryName(tIn.Text),
-                                  Path.GetFileNameWithoutExtension(tIn.Text)
-                              );
+                    f.SelectedPath = "";
                 }
-                catch (Exception ex)
-                {
-                    outFile = "";
-                    return false;
-                }
+
             }
-            return true;
         }
-        private bool runCrypto(TextBox inputTBox, /*TextBox outputTBox,*/ SaveFileDialog sFD, bool encrypt)
+
+        private bool promptUserUI(TextBox tIn, SaveFileDialog s, FolderBrowserDialog f, bool encrypt)
         {
-            //Checks input and output on textbox
-            if (!promptUserUI(inputTBox, /*outputTBox,*/ sFD))
+            if (!CheckInputsUI(tIn))
             {
                 return false;
             }
+            CheckOutputsUI(tIn, s, f, encrypt);
+            return true;
+        }
+
+        private void runCrypto(TextBox inputTBox, SaveFileDialog sFD, FolderBrowserDialog fBD, bool encrypt)
+        {
+            //Checks input and output on textbox
+            if (!promptUserUI(inputTBox, sFD, fBD, encrypt))
+            {
+                return;
+            }
+
             //Variables
             string key = passwordTBox.Text;
             string inputFile = inputTBox.Text;
-            string outputFile = "";
-            if (!setOutputFile(inputTBox, /*outputTBox,*/ sFD, out outputFile))
+            string outputFile = (encrypt)? sFD.FileName : "";
+
+            //Error! No Output file
+            if (encrypt && outputFile == "")
             {
-                return false;
+                MessageBox.Show("Please inform the name of the encrypted file.!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
+                return;
             }
+
             //Running crypto
             try
             {
+                //Reading input file
                 string textInput = File.ReadAllText(inputFile, Encoding.Default);
-                string textOutput = (encrypt)?  StringCipher.Encrypt(textInput, key, inputFile):
-                                                StringCipher.Decrypt(textInput, key, out outputFile);
+                string textOutput = (encrypt)?  StringCipher.Encrypt(textInput, key, inputFile) : StringCipher.Decrypt(textInput, key, out outputFile);
+
+                //Ensure full path for decryption
+                if (!encrypt)
+                {
+                    if(fBD.SelectedPath != "")
+                    {
+                        outputFile = Path.Combine(fBD.SelectedPath, Path.GetFileName(outputFile));
+                    }
+                    else
+                    {
+                        MessageBox.Show("Please inform the folder to save the file.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
+                        return;
+                    }
+                }
+
+                //Writing OutputFile
                 File.WriteAllText(outputFile, textOutput, Encoding.Default);
+
+                //Message
                 MessageBox.Show("File \"" + Path.GetFileName(outputFile) + "\" " + ((encrypt) ? "encrypted" : "decrypted") + " sucessfully.\n" + 
-                    "Saved on:\n\"" + Path.GetDirectoryName(outputFile) + "\"");
-                return true;
+                    "Saved on:\n\"" +
+                    ((encrypt)? Path.GetDirectoryName(outputFile) : fBD.SelectedPath) + "\"");
             }
             catch (Exception ex)
             {
-                File.WriteAllText("log.txt", "Mensagem:\n" + ex.Message + "\n\nStackTrace:\n" + ex.StackTrace);
-                return false;
+                MessageBox.Show("Password incorrect!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
+                //File.WriteAllText("log.txt", "Mensagem:\n" + ex.Message + "\n\nStackTrace:\n" + ex.StackTrace);
             }
         }
         private void encButton_Click(object sender, EventArgs e)
         {
             //Gui Elements
-            SaveFileDialog sFD = encSFD;
-            TextBox inputTBox = encInputTBox;
-            //TextBox outputTBox = encOutputTBox;
-            runCrypto(inputTBox, /*outputTBox,*/ sFD, true);
+            runCrypto(encInputTBox, encSFD, null, true);
         }
 
         private void decButton_Click(object sender, EventArgs e)
         {
             //Gui Elements
-            SaveFileDialog sFD = decSFD;
-            TextBox inputTBox = decInputTBox;
-            //TextBox outputTBox = decOutputTBox;
-            runCrypto(inputTBox, /*outputTBox,*/ sFD, false);
+            runCrypto(decInputTBox, null, decFBD, false);
         }
     }
 }

@@ -54,7 +54,6 @@
             this.decInputTBox = new System.Windows.Forms.TextBox();
             this.tableLayoutPanel5 = new System.Windows.Forms.TableLayoutPanel();
             this.encSFD = new System.Windows.Forms.SaveFileDialog();
-            this.decSFD = new System.Windows.Forms.SaveFileDialog();
             this.decOFD = new System.Windows.Forms.OpenFileDialog();
             this.decFBD = new System.Windows.Forms.FolderBrowserDialog();
             this.tableLayoutPanel1.SuspendLayout();
@@ -291,7 +290,6 @@
             this.decOutBrowse.Text = "...";
             this.decOutBrowse.UseVisualStyleBackColor = true;
             this.decOutBrowse.Visible = false;
-            this.decOutBrowse.Click += new System.EventHandler(this.decOutBrowse_Click);
             // 
             // decOutputTBox
             // 
@@ -373,12 +371,6 @@
             // encSFD
             // 
             this.encSFD.Filter = "All Files (*.*)|*.*";
-            this.encSFD.FileOk += new System.ComponentModel.CancelEventHandler(this.encSFD_FileOk);
-            // 
-            // decSFD
-            // 
-            this.decSFD.Filter = "All Files (*.*)|*.*";
-            this.decSFD.FileOk += new System.ComponentModel.CancelEventHandler(this.decSFD_FileOk);
             // 
             // decOFD
             // 
@@ -438,7 +430,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.SaveFileDialog encSFD;
-        private System.Windows.Forms.SaveFileDialog decSFD;
         private System.Windows.Forms.Button decInBrowse;
         private System.Windows.Forms.Button decOutBrowse;
         private System.Windows.Forms.Button encOutBrowse;
