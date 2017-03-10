@@ -130,8 +130,8 @@ namespace EncryptFile
             try
             {
                 //Reading input file
-                string textInput = File.ReadAllText(inputFile, Encoding.Default);
-                string textOutput = (encrypt)?  StringCipher.Encrypt(textInput, key, inputFile) : StringCipher.Decrypt(textInput, key, out outputFile);
+                string inputFileContent = File.ReadAllText(inputFile, Encoding.Default);
+                string outputFileContent = (encrypt)?  StringCipher.Encrypt(inputFileContent, key, inputFile) : StringCipher.Decrypt(inputFileContent, key, out outputFile);
 
                 //Ensure full path for decryption
                 if (!encrypt)
@@ -148,7 +148,7 @@ namespace EncryptFile
                 }
 
                 //Writing OutputFile
-                File.WriteAllText(outputFile, textOutput, Encoding.Default);
+                File.WriteAllText(outputFile, outputFileContent, Encoding.Default);
 
                 //Message
                 MessageBox.Show("File \"" + Path.GetFileName(outputFile) + "\" " + ((encrypt) ? "encrypted" : "decrypted") + " sucessfully.\n" + 

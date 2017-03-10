@@ -18,7 +18,7 @@ namespace EncryptStringSample
         public static string Encrypt(string plainText, string passPhrase, string inputFile)
         {
             // Salt and IV is randomly generated each time, but is preprended to encrypted cipher text
-            // so that the same Salt and IV values can be used when decrypting.  
+            // so that the same Salt and IV values can be used when decrypting.
             var saltStringBytes = Generate256BitsOfRandomEntropy();
             var ivStringBytes = Generate256BitsOfRandomEntropy();
             string filename = Path.GetFileName(inputFile);
@@ -52,18 +52,6 @@ namespace EncryptStringSample
                     }
                 }
             }
-        }
-
-        public static string Base64Encode(string plainText)
-        {
-            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-            return System.Convert.ToBase64String(plainTextBytes);
-        }
-
-        public static string Base64Decode(string base64EncodedData)
-        {
-            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
-            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
         }
 
         public static string Decrypt(string cipherText, string passPhrase, out string outputFile)
