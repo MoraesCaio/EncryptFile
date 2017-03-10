@@ -63,10 +63,10 @@ namespace EncryptFile
                     if (CheckOption(options, optionAllowedCharacters, "") && args.Length >= 3)
                     {
 
-                        if(CheckOption(options, "f", "-ed"))
+                        if (CheckOption(options, "f", "-ed"))
                         {
                             string directory = args[2];
-                            string outputDirectory = (args.Length >= 4 && Directory.Exists(args[3]))? args[3] : directory;
+                            string outputDirectory = (args.Length >= 4 && Directory.Exists(args[3])) ? args[3] : directory;
 
                             if (!Directory.Exists(directory))
                             {
@@ -77,8 +77,8 @@ namespace EncryptFile
                             string[] files = Directory.GetFiles(directory);
                             Console.WriteLine("Reading files from: \n" + directory + "\n");
 
-                            string inputFileContent = "";
-                            string outputfileName = "", outputFileContent = "";
+                            string inputFileContent;
+                            string outputfileName, outputFileContent, outputPath;
 
                             if (CheckOption(options, "fe", "-"))
                             {
@@ -93,6 +93,11 @@ namespace EncryptFile
 
                                         outputfileName = Path.GetFileNameWithoutExtension(file) + EncryptedExtension;
                                         outputFileContent = StringCipher.Encrypt(inputFileContent, password, Path.GetFileName(file));
+
+                                        outputPath = Path.Combine(outputDirectory, outputfileName);
+
+                                        Console.WriteLine("Saving as:\n" + outputPath + "\n");
+                                        File.WriteAllText(outputPath, outputFileContent, Encoding.Default);
                                     }
                                 }
                             }
@@ -110,6 +115,10 @@ namespace EncryptFile
                                             Console.WriteLine(file);
 
                                             outputFileContent = StringCipher.Decrypt(inputFileContent, password, out outputfileName);
+                                            outputPath = Path.Combine(outputDirectory, outputfileName);
+
+                                            Console.WriteLine("Saving as:\n" + outputPath + "\n");
+                                            File.WriteAllText(outputPath, outputFileContent, Encoding.Default);
                                         }
                                     }
                                 }
@@ -119,26 +128,23 @@ namespace EncryptFile
                                 Console.WriteLine("-f\tEncrypt or decrypt every file on folder (specify which with 'fe' or 'fd')\n");
                                 return;
                             }
-                            string outputPath = Path.Combine(outputDirectory, outputfileName);
-
-                            Console.WriteLine("Saving as:\n" + outputPath + "\n");
-                            File.WriteAllText(outputPath, outputFileContent, Encoding.Default);
                         }
                         //One file mode
                         else if (CheckOption(options, "ed", "-"))
                         {
                             string file = args[2];
                             string directory = Path.GetDirectoryName(file);
-                            string outputDirectory = (args.Length >= 4 && Directory.Exists(args[3]))? args[3] : directory;
+                            string outputDirectory = (args.Length >= 4 && Directory.Exists(args[3])) ? args[3] : directory;
 
                             if (!File.Exists(file))
                             {
-                                Console.WriteLine("File \"" + file+ "\" does not exist.");
+                                Console.WriteLine("File \"" + file + "\" does not exist.");
                                 return;
                             }
 
                             string outputfileName = "", outputFileContent = "";
                             string inputFileContent = File.ReadAllText(file, Encoding.Default);
+                            string outputPath;
 
                             if (CheckOption(options, "e", "-"))
                             {
@@ -147,6 +153,10 @@ namespace EncryptFile
 
                                 outputfileName = Path.GetFileNameWithoutExtension(file) + EncryptedExtension;
                                 outputFileContent = StringCipher.Encrypt(inputFileContent, password, Path.GetFileName(file));
+
+                                outputPath = Path.Combine(outputDirectory, outputfileName);
+                                Console.WriteLine("Saving as:\n" + outputPath + "\n");
+                                File.WriteAllText(outputPath, outputFileContent, Encoding.Default);
                             }
                             else if (CheckOption(options, "d", "-"))
                             {
@@ -156,6 +166,10 @@ namespace EncryptFile
                                     Console.WriteLine(file);
 
                                     outputFileContent = StringCipher.Decrypt(inputFileContent, password, out outputfileName);
+
+                                    outputPath = Path.Combine(outputDirectory, outputfileName);
+                                    Console.WriteLine("Saving as:\n" + outputPath + "\n");
+                                    File.WriteAllText(outputPath, outputFileContent, Encoding.Default);
                                 }
                                 else
                                 {
@@ -167,11 +181,6 @@ namespace EncryptFile
                             {
                                 return;
                             }
-
-                            string outputPath = Path.Combine(outputDirectory, outputfileName);
-
-                            Console.WriteLine("Saving as:\n" + outputPath + "\n");
-                            File.WriteAllText(outputPath, outputFileContent, Encoding.Default);
                         }
                     }
                     else
@@ -207,7 +216,8 @@ namespace EncryptFile
         private static bool CheckOption(string str, string allowedChars, string ignoredChars)
         {
             char[] ignoredCharsAr = ignoredChars.ToCharArray();
-            foreach (char ignoredChar in ignoredCharsAr){
+            foreach (char ignoredChar in ignoredCharsAr)
+            {
                 str = str.Replace(ignoredChar.ToString(), "");
             }
             if (str == "")
