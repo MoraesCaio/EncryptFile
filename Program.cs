@@ -6,21 +6,21 @@ using System.Windows.Forms;
 using EncryptStringSample;
 
 /*This program encrypts or decrypts a file, files on a folder.
- * 
+ *
  * GUI mode:
  *  The user can specify a password and a file to be encrypted or decrypted. But, cannot specify a folder at the moment.
  *
  * Command-Line:
- *  
+ *
  *  options password file/folder [outputfolder]
  *  -f      folder mode
  *  -e      encrypt
  *  -d      decrypt
- *  
- *  The user can specify a password (it must have one) and a file or folder. In case a folder was specified, all files
+ *
+ *  The user can specify a password (when calling by command line, it must have one) and a file or folder. In case a folder was specified, all files
  *      inside the folder (except for the files without extension) will be encrypted or decrypted.
- *  The encrypted file will have the same name withour extension.
- *  
+ *  The encrypted file(s) will have the same name without extension.
+ *
  *  Author: Caio Moraes
  *  GitHub: MoraesCaio
  *  Email: caiomoraes@msn.com
@@ -77,47 +77,52 @@ namespace EncryptFile
                             string[] files = Directory.GetFiles(directory);
                             Console.WriteLine("Reading files from: \n" + directory + "\n");
 
-                            foreach (string file in files)
-                            {
-                                if (File.Exists(file))
-                                {
-                                    string outputfileName = "", outputFileContent = "";
-                                    string inputFileContent = File.ReadAllText(file, Encoding.Default);
+                            string inputFileContent = "";
+                            string outputfileName = "", outputFileContent = "";
 
-                                    if (CheckOption(options, "fe", "-"))
+                            if (CheckOption(options, "fe", "-"))
+                            {
+                                foreach (string file in files)
+                                {
+                                    if (File.Exists(file))
                                     {
+                                        inputFileContent = File.ReadAllText(file, Encoding.Default);
+
                                         Console.WriteLine("Encrypting File:");
                                         Console.WriteLine(file);
 
                                         outputfileName = Path.GetFileNameWithoutExtension(file) + EncryptedExtension;
                                         outputFileContent = StringCipher.Encrypt(inputFileContent, password, Path.GetFileName(file));
                                     }
-                                    else if (CheckOption(options, "fd", "-"))
+                                }
+                            }
+                            else if (CheckOption(options, "fd", "-"))
+                            {
+                                foreach (string file in files)
+                                {
+                                    if (File.Exists(file))
                                     {
                                         if (Path.GetExtension(file) == EncryptedExtension)
                                         {
+                                            inputFileContent = File.ReadAllText(file, Encoding.Default);
+
                                             Console.WriteLine("Decrypting File:");
                                             Console.WriteLine(file);
 
                                             outputFileContent = StringCipher.Decrypt(inputFileContent, password, out outputfileName);
                                         }
-                                        else
-                                        {
-                                            continue;
-                                        }
                                     }
-                                    else
-                                    {
-                                        Console.WriteLine("-f\tEncrypt or decrypt every file on folder (specify which with 'fe' or 'fd')\n");
-                                        return;
-                                    }
-
-                                    string outputPath = Path.Combine(outputDirectory, outputfileName);
-
-                                    Console.WriteLine("Saving as:\n" + outputPath + "\n");
-                                    File.WriteAllText(outputPath, outputFileContent, Encoding.Default);
                                 }
                             }
+                            else
+                            {
+                                Console.WriteLine("-f\tEncrypt or decrypt every file on folder (specify which with 'fe' or 'fd')\n");
+                                return;
+                            }
+                            string outputPath = Path.Combine(outputDirectory, outputfileName);
+
+                            Console.WriteLine("Saving as:\n" + outputPath + "\n");
+                            File.WriteAllText(outputPath, outputFileContent, Encoding.Default);
                         }
                         //One file mode
                         else if (CheckOption(options, "ed", "-"))
